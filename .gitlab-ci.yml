@@ -1,0 +1,46 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  image: python:3.5
+  stage: test
+  variables:
+    VALUE: KEY
+
+  script:
+      - pip install -r requirements_dev.txt
+      - tox
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+      - |
+          docker --version
+          apk add --no-cache curl jq python3 py-pip && pip install awscli==1.18.154
+  script:
+    - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+    - export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    - echo "ACCOUNT_ID= $ACCOUNT_ID"
+    - export REPOSITORY_URL=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:${CI_PIPELINE_ID} && echo $REPOSITORY_URL
+    - cd src/
+    - docker build -t $REPOSITORY_URL .
+    - docker push $REPOSITORY_URL
+    - docker tag $REPOSITORY_URL $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:latest
+    - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:latest
+
+deploy:
+  stage: deploy
+  script:
+    - export INIT_WEIGHT=0 && export NEW_WEIGHT=100
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
+    - kubectl apply -f kubernetes/namespace.yaml 
+    - kubectl apply -f kubernetes/ingress.yaml
+    - kubectl apply -f kubernetes/volumes.yaml 
+    - kubectl apply -f kubernetes
+  

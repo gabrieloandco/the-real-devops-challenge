@@ -1,0 +1,43 @@
+---
+
+- name: Create Kubernetes addon directory
+  file:
+    path: "{{ network_dir }}"
+    state: directory
+
+- name: "Copy {{ network }} YAML files"
+  template:
+    src: "{{ item }}"
+    dest: "{{ network_dir }}/{{ item | basename | regex_replace('\\.j2','') }}"
+  with_fileglob:
+    - ../templates/{{ network }}*.j2
+
+- name: "Check {{ network }} daemonset is working"
+  shell: kubectl --kubeconfig={{ kubeadmin_config }} get ds --all-namespaces | grep {{ network }}
+  delegate_to: "{{ groups['master'][0] }}"
+  run_once: true
+  register: check_net
+  ignore_errors: true
+  changed_when: false
+
+- name: "Create {{ network }} network daemonset"
+  when: check_net is failed
+  command: kubectl apply --kubeconfig={{ kubeadmin_config }} -f {{ network_dir }}/
+  delegate_to: "{{ groups['master'][0] }}"
+  run_once: true
+
+# - name: "Flannel Hack delete"
+#   shell: |
+#     kubectl delete --kubeconfig={{ kubeadmin_config }} clusterrole flannel -n kube-system
+#     kubectl delete --kubeconfig={{ kubeadmin_config }} clusterrolebinding flannel-n kube-system
+#     kubectl delete --kubeconfig={{ kubeadmin_config }} clusterrolebinding flannel -n kube-system 
+#     kubectl delete --kubeconfig={{ kubeadmin_config }} serviceaccount flannel -n kube-system
+#     kubectl delete --kubeconfig={{ kubeadmin_config }} configmap kube-flannel-cfg -n kube-system
+#     kubectl delete --kubeconfig={{ kubeadmin_config }} daemonset.extensions kube-flannel-ds -n kube-system
+#   delegate_to: "{{ groups['master'][0] }}"
+#   run_once: true
+
+# - name: "Flannel Hack recreate"
+#   shell: kubectl apply --kubeconfig={{ kubeadmin_config }} -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#   delegate_to: "{{ groups['master'][0] }}"
+#   run_once: true

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nosqldb
+  namespace: real-devops-challenge
+spec:
+  selector:
+    matchLabels:
+      app: api
+      tier: nosqldb
+  serviceName: nosqldb
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app:  api
+        tier: nosqldb
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo
+        image: mongo
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: nosqldb
+        command:
+           - mongod
+           - "--replSet"
+           - rs0
+           - "--smallfiles"
+           - "--noprealloc"
+        ports:
+          - containerPort: 27017
+        volumeMounts:
+          - name: data
+            mountPath: /data/db
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: MONGO_SIDECAR_POD_LABELS
+            value: "role=mongo,environment=test"
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        type: local
+    spec:
+      accessModes:
+         -  "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 200M
+      volumeName: mongo-pv
+      storageClassName: standard

@@ -1,0 +1,35 @@
+version: '3'
+
+volumes:
+    mongodata:
+
+services:
+    api:
+        restart: unless-stopped
+        container_name: api
+        environment:
+            MONGO_URI: mongodb://mongouser:mongopass@mongo/restaurant?authSource=admin
+        build:
+            context: .
+            args:
+                ROOT_DIR: /app/
+        user: exec_user
+        ports:
+        - "8080:8080"
+        links:
+        - "mongo:database"
+        depends_on:
+        - mongo
+
+
+    mongo:
+        image: mongo
+        container_name: mongo
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: mongouser
+            MONGO_INITDB_ROOT_PASSWORD: mongopass
+            MONGO_INITDB_DATABASE: restaurant
+        volumes: 
+        -  ./data:/fixture
+        - mongodata:/data

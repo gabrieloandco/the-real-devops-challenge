@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: real-devops-challenge
+  labels:
+    app: challenge
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app: challenge
+        tier: backend
+  template:
+    metadata:
+      labels:
+        app: challenge
+        tier: backend
+    spec:
+      containers:
+      - name: api
+        image: api
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /api/v1/restaurant 
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/restaurant 
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 2
+        envFrom:
+        - configMapRef:
+            name: api
