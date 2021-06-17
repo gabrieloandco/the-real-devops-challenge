@@ -49,4 +49,6 @@ deploy:
     - kubectl apply -f kubernetes/ingress.yaml
     - kubectl apply -f kubernetes/volumes.yaml 
     - kubectl apply -f kubernetes
+    - kubectl rollout start kubernetes/deployment.yaml
+    - kubectl rollout status kubernetes/deployment.yaml
   
