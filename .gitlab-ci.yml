@@ -43,7 +43,7 @@ deploy:
     - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
   script:
     - export INIT_WEIGHT=0 && export NEW_WEIGHT=100
-    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME
     - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
     - kubectl apply -f kubernetes/namespace.yaml 
     - kubectl apply -f kubernetes/ingress.yaml
