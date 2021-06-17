@@ -26,12 +26,11 @@ build:
     - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
     - export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
     - echo "ACCOUNT_ID= $ACCOUNT_ID"
-    - export REPOSITORY_URL=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:${CI_PIPELINE_ID} && echo $REPOSITORY_URL
-    - cd src/
+    - export REPOSITORY_URL=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/api:${CI_PIPELINE_ID} && echo $REPOSITORY_URL
     - docker build -t $REPOSITORY_URL .
     - docker push $REPOSITORY_URL
-    - docker tag $REPOSITORY_URL $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:latest
-    - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:latest
+    - docker tag $REPOSITORY_URL $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/api:latest
+    - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/api:latest
 
 deploy:
   stage: deploy

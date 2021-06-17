@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: api
+        image: 802295647881.dkr.ecr.us-east-2.amazonaws.com/api
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
