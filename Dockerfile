@@ -11,7 +11,7 @@ RUN groupadd -g 999 exec_group&& \
 
 # Copy app code
 WORKDIR ${ROOT_DIR}
-ADD . ${ROOT_DIR}
+ADD ./app ${ROOT_DIR}
 RUN chown -R exec_user:exec_group .
 
 # Requirements

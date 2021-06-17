@@ -32,7 +32,7 @@ build:
     - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/api:latest
 
 deploy:
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  image: dtzar/helm-kubectl:3.3.4
   stage: deploy
   script:
     - export INIT_WEIGHT=0 && export NEW_WEIGHT=100
